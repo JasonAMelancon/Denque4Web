@@ -1,0 +1,34 @@
+name: Edit Salakar's Denque for Web and Greasy Fork
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Download and modify the script (no external deps)
+        run: node .github/scripts/automate_edit.js
+
+      - name: Commit generated files if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "actions@github.com"
+          git add denque_for_web.js denque_for_greasy_fork.js || true
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Auto-commit Denque auto-edits $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            git push
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
